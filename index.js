@@ -9,29 +9,55 @@ app.use(cors());
 
 const { getResponse } = require("./aiLogic"); // Імпортуємо логіку
 const connectDB = require("./db"); // Підключення до БД
-const Message = require("./messageModel"); // Модель для збереження історії
+const Message = require("./model/messageModel"); // Модель для збереження історії
+const Chat = require("./model/chatModel");
 
 connectDB(); // Запускаємо підключення до БД
+app.get("/chats", async (req, res) => {
+  try {
+    const chats = await Chat.find();
+    res.json(chats);
+  } catch (error) {
+    res.status(500).json({ error: "Не вдалося отримати чати" });
+  }
+});
 
-// Ендпоінт для отримання відповіді
+app.get("/chats/:chatId/messages", async (req, res) => {
+  try {
+    const messages = await Message.find({ chatId: req.params.chatId });
+    res.json(messages);
+  } catch (error) {
+    res.status(500).json({ error: "Помилка отримання повідомлень" });
+  }
+});
+
+app.post("/chats", async (req, res) => {
+  try {
+    const newChat = new Chat({ name: "Новий чат" });
+    await newChat.save();
+    res.json(newChat);
+  } catch (error) {
+    res.status(500).json({ error: "Не вдалося створити чат" });
+  }
+});
+
 app.post("/chat", async (req, res) => {
-  const { message } = req.body;
-  if (!message) {
-    return res
-      .status(400)
-      .json({ error: "Повідомлення не може бути порожнім" });
+  const { chatId, message } = req.body;
+  if (!message || !chatId) {
+    return res.status(400).json({ error: "chatId і message обов'язкові" });
   }
 
   const response = getResponse(message);
 
-  // Збереження повідомлення в базу даних
-  // Збереження повідомлення в базу даних
   try {
     console.log("📩 Збереження повідомлення у БД:", {
+      chatId,
       userMessage: message,
       botResponse: response,
     });
+
     const newMessage = new Message({
+      chatId, // Додаємо chatId
       userMessage: message,
       botResponse: response,
     });
