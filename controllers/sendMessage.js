@@ -1,5 +1,5 @@
 const Message = require("../models/messageModel");
-const { getResponse } = require("../aiLogic");
+const { getMLResponse } = require("../mlModel");
 
 module.exports = async (req, res) => {
   const { chatId, message } = req.body;
@@ -7,7 +7,7 @@ module.exports = async (req, res) => {
     return res.status(400).json({ error: "chatId і message обов'язкові" });
   }
 
-  const response = getResponse(message);
+  const response = getMLResponse(message);
 
   try {
     console.log("📩 Збереження повідомлення у БД:", {

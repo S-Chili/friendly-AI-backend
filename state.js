@@ -1,12 +1,14 @@
 let isTrained = false;
 
-function setIsTrained(value) {
+const setIsTrained = (value) => {
+  console.log(`🔧 Зміна статусу isTrained на: ${value}`);
   isTrained = value;
-  console.log("🔍 Статус навчання моделі:", isTrained);
-}
+  console.log(`📢 Перевірка після зміни: isTrained = ${isTrained}`);
+};
 
-function getIsTrained() {
+const getIsTrained = () => {
+  console.log(`📢 Виклик getIsTrained: ${isTrained}`);
   return isTrained;
-}
+};
 
-module.exports = { getIsTrained, setIsTrained };
+module.exports = { setIsTrained, getIsTrained };

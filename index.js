@@ -2,9 +2,8 @@ require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
 const connectDB = require("./db");
-const { getIsTrained, setIsTrained } = require("./state");
-const { trainModel } = require("./mlModel"); // Додаємо імпорт trainModel
-
+const { trainModel } = require("./mlModel");
+const chatRoutes = require("./routes/chat");
 const {
   getChats,
   createChat,
@@ -12,35 +11,32 @@ const {
   deleteChat,
 } = require("./controllers/index");
 
-const authRoutes = require("./routes/authRoutes");
-const protectedRoutes = require("./routes/protectedRoutes");
-const chatRoutes = require("./routes/chat");
-
 const app = express();
 app.use(express.json());
 app.use(cors());
 
-connectDB();
+(async () => {
+  try {
+    console.log("🚀 Навчання AI-моделі...");
+    await trainModel();
+    console.log("✅ Модель успішно навчена!");
 
-// ✅ Навчання моделі (асинхронно)
-trainModel()
-  .then(() => {
-    setIsTrained(true);
-    console.log("✅ AI-Lilu готовий до роботи!");
-  })
-  .catch((error) => {
-    console.error("❌ Помилка при навчанні моделі:", error);
-  });
+    console.log("🔄 Підключення до MongoDB...");
+    await connectDB();
+    console.log("✅ Підключення до MongoDB встановлено!");
 
-// 📌 Використання маршрутів не залежить від навчання моделі
-app.use("/auth", authRoutes);
-app.use("/api", protectedRoutes);
+    console.log("🚀 Запускаємо сервер...");
+    const PORT = process.env.PORT || 3000;
+    app.listen(PORT, () => console.log(`🎉 Сервер працює на порту ${PORT}`));
+  } catch (error) {
+    console.error("❌ Помилка запуску сервера:", error);
+    process.exit(1);
+  }
+})();
+
 app.use("/chat", chatRoutes);
 
 app.get("/chats", getChats);
 app.get("/chats/:chatId/messages", getMessages);
 app.post("/chats", createChat);
 app.delete("/chats/:chatId", deleteChat);
-
-const PORT = 3000;
-app.listen(PORT, () => console.log(`🚀 AI-Lilu працює на порту ${PORT}`));

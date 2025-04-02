@@ -2,21 +2,25 @@ const express = require("express");
 const router = express.Router();
 const { getMLResponse } = require("../mlModel");
 
-const { getIsTrained } = require("../state");
-
 router.post("/", async (req, res) => {
-  console.log("🔍 Статус навчання моделі:", getIsTrained());
+  try {
+    const { message } = req.body;
 
-  if (!getIsTrained()) {
-    return res.status(503).json({ error: "Модель ще не навчена!" });
+    if (!message) {
+      return res
+        .status(400)
+        .json({ error: "Повідомлення не може бути порожнім" });
+    }
+
+    console.log(`📩 Отримано повідомлення: "${message}"`);
+    const response = getMLResponse(message);
+    console.log(`📤 Відповідь моделі: "${response}"`);
+
+    res.json({ response });
+  } catch (error) {
+    console.error("❌ Помилка в маршруті /chat:", error);
+    res.status(500).json({ error: "Внутрішня помилка сервера" });
   }
-
-  const { message } = req.body;
-  const response = getMLResponse(message);
-
-  console.log("📩 Відправляємо відповідь клієнту:", response);
-
-  res.json({ response });
 });
 
 module.exports = router;

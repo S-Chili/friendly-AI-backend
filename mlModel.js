@@ -1,7 +1,7 @@
 const natural = require("natural");
+const classifier = new natural.BayesClassifier();
+const { setIsTrained, getIsTrained } = require("./state");
 
-const { setIsTrained, getIsTrained } = require("./state"); // Додаємо
-// Тренувальні дані (поки що вручну, потім можна додати динамічне навчання)
 const trainingData = [
   { input: "привіт", output: "Привіт! Як справи?" },
   {
@@ -105,42 +105,50 @@ const trainingData = [
   { input: "Любий", output: "Ммм...так, крихітко, слухаю" },
 ];
 
-const classifier = new natural.BayesClassifier();
-
 const getMLResponse = (message) => {
+  console.log(`📢 Виклик getMLResponse() з повідомленням: "${message}"`);
+  console.log(`📢 Статус isTrained: ${getIsTrained()}`);
+
   if (!getIsTrained()) {
     console.error("❌ Помилка: Модель ще не навчена!");
     return "Моя база знань ще не готова 😞";
   }
 
+  console.log(`📢 Кількість навчальних документів: ${classifier.docs.length}`);
+
+  console.log("📢 Починаємо класифікацію...");
   const response = classifier.classify(message);
-  console.log(`🧠 AI відповідає: "${response}" на повідомлення: "${message}"`);
+  console.log(`🧠 AI відповідає: "${response}"`);
 
   return response || "Цікаве питання! Розкажи більше про це!";
 };
 
 const trainModel = async () => {
-  console.log("🔄 Навчання моделі...");
-  return new Promise((resolve, reject) => {
-    try {
-      trainingData.forEach(({ input, output }) => {
-        classifier.addDocument(input, output);
-      });
+  console.log("🔄 Починаємо навчання моделі...");
 
-      classifier.train();
-      setIsTrained(true);
-      console.log("✅ Модель навчена! isTrained =", getIsTrained());
-      resolve();
-    } catch (error) {
-      console.error("❌ Помилка навчання моделі:", error);
-      reject("Not Trained"); // Відхиляємо Promise з поясненням
-    }
-  }).catch((err) => {
-    console.error("🚨 Unhandled error in trainModel:", err);
-  });
+  try {
+    console.log("📢 Навчальні дані:", trainingData);
+
+    trainingData.forEach(({ input, output }) => {
+      console.log(`📩 Додаємо документ: "${input}" -> "${output}"`);
+      console.log("📩 Додаємо документ:", inputMessage, "->", outputMessage);
+      classifier.addDocument(input, output);
+    });
+
+    console.log(`📢 Додано документів для навчання: ${classifier.docs.length}`);
+    console.log("🚀 Починаємо тренування...");
+    classifier.train();
+    console.log("✅ Навчання завершено!");
+
+    setIsTrained(true);
+    console.log("📢 Статус isTrained після встановлення:", getIsTrained());
+
+    return Promise.resolve();
+  } catch (error) {
+    console.error("❌ Помилка під час навчання моделі:", error);
+    setIsTrained(false);
+    return Promise.reject(new Error("Not Trained"));
+  }
 };
 
-// Додаємо функцію, щоб перевіряти, чи модель навчена
-const isModelTrained = () => isTrained;
-
-module.exports = { trainModel, getMLResponse, isModelTrained };
+module.exports = { trainModel, getMLResponse };
