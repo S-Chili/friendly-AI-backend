@@ -4,11 +4,7 @@ require("dotenv").config();
 const uri = process.env.MONGO_URI;
 
 const clientOptions = {
-  serverApi: {
-    version: "1",
-    strict: true,
-    deprecationErrors: true,
-  },
+  serverApi: { version: "1", strict: true, deprecationErrors: true },
 };
 
 const connectDB = async () => {

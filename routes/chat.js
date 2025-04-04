@@ -5,21 +5,20 @@ const { getMLResponse } = require("../mlModel");
 router.post("/", async (req, res) => {
   try {
     const { message } = req.body;
-
-    if (!message) {
+    const response = await getMLResponse(message);
+    if (!response) {
       return res
         .status(400)
-        .json({ error: "Повідомлення не може бути порожнім" });
+        .json({ response: "Щось пішло не так, спробуй ще раз!" });
     }
 
-    console.log(`📩 Отримано повідомлення: "${message}"`);
-    const response = getMLResponse(message);
-    console.log(`📤 Відповідь моделі: "${response}"`);
-
-    res.json({ response });
+    // Повертаємо відповідь
+    return res.status(200).json({ response });
   } catch (error) {
-    console.error("❌ Помилка в маршруті /chat:", error);
-    res.status(500).json({ error: "Внутрішня помилка сервера" });
+    console.error("Помилка обробки повідомлення:", error);
+    return res
+      .status(500)
+      .json({ response: "Сталася помилка при обробці запиту." });
   }
 });
 
