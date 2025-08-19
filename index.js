@@ -8,6 +8,7 @@ const {
   createChat,
   getMessages,
   deleteChat,
+  updatedChat,
 } = require("./controllers/index");
 
 const app = express();
@@ -38,3 +39,4 @@ app.get("/chats", getChats);
 app.get("/chats/:chatId/messages", getMessages);
 app.post("/chats", createChat);
 app.delete("/chats/:chatId", deleteChat);
+app.put("/chats/:chatId", updatedChat);
